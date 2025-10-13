@@ -42,7 +42,7 @@ TRAIN_TRANSFORM = transforms.Compose([
 TEST_TRANSFORM = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(IMG_SIZE),
-    transforms.ToTensor,
+    transforms.ToTensor(),
     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD)
 ])
 
