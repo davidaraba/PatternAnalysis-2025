@@ -109,3 +109,76 @@ class ADNIDataset(Dataset):
             image = self.transform(image)
             
         return image, label
+
+# --- Dataloader Function ---
+def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4):
+    """
+    Creates and returns PyTorch DataLoader objects for the ADNI dataset.
+
+    Args:
+        batch_size (int): The number of samples per batch.
+        train (bool): If True, returns (train_loader, val_loader).
+                      If False, returns test_loader.
+        val_split (float): The fraction of the training data to use for validation.
+        num_workers (int): Number of subprocesses to use for data loading.
+
+    Returns:
+        A DataLoader or a tuple of DataLoaders.
+    """
+    if train:
+        full_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=True)
+        
+        # Split the full training set into training and validation sets
+        train_size = int((1 - val_split) * len(full_dataset))
+        val_size = len(full_dataset) - train_size
+        train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
+        
+        print(f"Full training dataset size: {len(full_dataset)}")
+        print(f"Training set size: {len(train_dataset)}")
+        print(f"Validation set size: {len(val_dataset)}")
+        print(f"Classes: {full_dataset.class_to_idx}")
+        
+        train_loader = DataLoader(
+            dataset=train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers
+        )
+        val_loader = DataLoader(
+            dataset=val_dataset,
+            batch_size=batch_size,
+            shuffle=False, # No need to shuffle validation data
+            num_workers=num_workers
+        )
+        return train_loader, val_loader
+    else:
+        test_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=False)
+        print(f"Test dataset size: {len(test_dataset)}")
+        print(f"Classes: {test_dataset.class_to_idx}")
+        
+        test_loader = DataLoader(
+            dataset=test_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
+        return test_loader
+
+# --- Self-Testing Block ---
+# A great practice to ensure your file works independently.
+if __name__ == '__main__':
+    print("--- Testing Training/Validation Dataloader ---")
+    train_loader, val_loader = get_adni_dataloader(batch_size=32, train=True)
+    
+    # Fetch one batch from the train loader
+    train_images, train_labels = next(iter(train_loader))
+    print(f"Train batch shape: {train_images.shape}") # Should be [32, 1, 224, 224]
+    print(f"Train labels shape: {train_labels.shape}") # Should be [32]
+
+    print("\n--- Testing Test Dataloader ---")
+    test_loader = get_adni_dataloader(batch_size=32, train=False)
+
+    # Fetch one batch from the test loader
+    test_images, test_labels = next(iter(test_loader))
+    print(f"Test batch shape: {test_images.shape}")
+    print(f"Test labels shape: {test_labels.shape}")
