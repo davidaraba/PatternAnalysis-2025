@@ -21,11 +21,10 @@ ADNI_ROOT_PATH = Path('/home/groups/comp3710/ADNI/AD_NC')
 # Define standard image size 
 IMG_SIZE = 224
 
-# These values just placeholders for not.
-# Will create utility function to get actual 
-# values for normalisation later
-DATASET_MEAN = (0.115,)
-DATASET_STD = (0.220,)
+# Mean and standard deviation calculated from the ADNI training set.
+# These values are used for data normalisation.
+DATASET_MEAN = (0.1155,)
+DATASET_STD = (0.2254,)
 
 # --- Transformations ---
 # Define separate, clear pipelines for training and testing.
