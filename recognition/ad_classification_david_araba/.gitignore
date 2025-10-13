@@ -1,0 +1,26 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# IDE / Editor specific files
+.vscode/
+.idea/
+*.swp
+
+# macOS specific files
+.DS_Store
+
+# Log files and script outputs
+*.out
+*.log
+
+# Model checkpoints and saved models
+checkpoints/
+*.pt
+*.pth
+*.h5
+
+# Virtual environment folders
+venv/
+.venv/
+env/
