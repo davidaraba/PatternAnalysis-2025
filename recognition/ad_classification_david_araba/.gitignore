@@ -11,6 +11,7 @@ __pycache__/
 .DS_Store
 
 # Log files and script outputs
+logs/
 *.out
 *.log
 
