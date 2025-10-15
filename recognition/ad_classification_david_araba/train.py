@@ -9,6 +9,7 @@ and plots the training and validation metrics.
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
@@ -21,7 +22,7 @@ from modules import ConvNeXt
 # Hyperparameters for the training process
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 32
-EPOCHS = 50 # Start with 50, you might need more or less
+EPOCHS = 150 
 
 # Paths for saving outputs
 MODEL_SAVE_PATH = "best_model.pth"
@@ -108,9 +109,10 @@ if __name__ == '__main__':
 
     # Initialise model, loss function, and optimiser
     print("Initialising model...")
-    model = ConvNeXt(in_chans=1, num_classes=2).to(device)
+    model = ConvNeXt(in_chans=1, num_classes=2, drop_path_rate=0.1).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
+    scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
 
     # Lists to store training history
     history = {
@@ -142,6 +144,9 @@ if __name__ == '__main__':
             best_val_acc = val_acc
             torch.save(model.state_dict(), MODEL_SAVE_PATH)
             print(f"New best model saved with validation accuracy: {val_acc:.4f}")
+            
+        # Update the learning rate scheduler at the end of every epoch
+        scheduler.step()
 
     print("\nTraining finished!")
 
