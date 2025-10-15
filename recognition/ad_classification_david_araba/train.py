@@ -94,3 +94,80 @@ def evaluate(model, dataloader, criterion, device):
     epoch_loss = running_loss / total_samples
     epoch_acc = correct_predictions / total_samples
     return epoch_loss, epoch_acc
+
+# --- 3. The Main Execution Block ---
+if __name__ == '__main__':
+    # Set device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+
+    # Load data
+    print("Loading data...")
+    train_loader, val_loader = get_adni_dataloader(batch_size=BATCH_SIZE, train=True)
+    test_loader = get_adni_dataloader(batch_size=BATCH_SIZE, train=False)
+
+    # Initialise model, loss function, and optimiser
+    print("Initialising model...")
+    model = ConvNeXt(in_chans=1, num_classes=2).to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
+
+    # Lists to store training history
+    history = {
+        'train_loss': [], 'train_acc': [],
+        'val_loss': [], 'val_acc': []
+    }
+
+    best_val_acc = 0.0
+
+    print("Starting training...")
+    for epoch in range(EPOCHS):
+        print(f"\n--- Epoch {epoch+1}/{EPOCHS} ---")
+
+        # Train and validate
+        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
+
+        print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f} | "
+              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+
+        # Store history
+        history['train_loss'].append(train_loss)
+        history['train_acc'].append(train_acc)
+        history['val_loss'].append(val_loss)
+        history['val_acc'].append(val_acc)
+
+        # Save the best model based on validation accuracy
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            torch.save(model.state_dict(), MODEL_SAVE_PATH)
+            print(f"New best model saved with validation accuracy: {val_acc:.4f}")
+
+    print("\nTraining finished!")
+
+    # --- 4. Plotting and Saving Results ---
+    print("Plotting training history...")
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    ax1.plot(history['train_loss'], label='Train Loss')
+    ax1.plot(history['val_loss'], label='Validation Loss')
+    ax1.set_title('Loss History')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+    ax1.legend()
+    
+    ax2.plot(history['train_acc'], label='Train Accuracy')
+    ax2.plot(history['val_acc'], label='Validation Accuracy')
+    ax2.set_title('Accuracy History')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Accuracy')
+    ax2.legend()
+    
+    plt.tight_layout()
+    plt.savefig(PLOT_SAVE_PATH)
+    print(f"Training plot saved to {PLOT_SAVE_PATH}")
+
+    # --- 5. Final Test Evaluation ---
+    print("\nEvaluating on the test set with the best model...")
+    model.load_state_dict(torch.load(MODEL_SAVE_PATH))
+    test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+    print(f"Final Test Loss: {test_loss:.4f}, Final Test Accuracy: {test_acc:.4f}")
