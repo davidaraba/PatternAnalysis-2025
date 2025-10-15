@@ -1,12 +1,15 @@
 #!/bin/bash
 #SBATCH --job-name=adni-convnext-train
-#SBATCH --partition=a100      # Request a powerful A100 GPU
-#SBATCH --gres=gpu:1          # Request 1 GPU
-#SBATCH --cpus-per-task=4     # Request 4 CPUs for data loading
-#SBATCH --time=02:00:00       # Request 2 hours of wall time
-#SBATCH --output=training_log-%j.out
+#SBATCH --partition=a100
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=02:00:00
+#SBATCH --output=logs/training_log-%j.out  
 
 echo "Starting training job on $(hostname)"
+
+# Create the logs directory if it doesn't exist
+mkdir -p logs 
 
 # Activate your Conda environment
 source ~/miniconda3/etc/profile.d/conda.sh
