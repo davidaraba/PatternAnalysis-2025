@@ -65,3 +65,32 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     epoch_loss = running_loss / total_samples
     epoch_acc = correct_predictions / total_samples
     return epoch_loss, epoch_acc
+
+# --- 2. The Validation/Evaluation Function ---
+def evaluate(model, dataloader, criterion, device):
+    """
+    Evaluates the model's performance on the validation set.
+    """
+    model.eval()  # Set the model to evaluation mode
+    running_loss = 0.0
+    correct_predictions = 0
+    total_samples = 0
+
+    # No need to track gradients for validation
+    with torch.no_grad():
+        for images, labels in tqdm(dataloader, desc="Validating"):
+            images, labels = images.to(device), labels.to(device)
+
+            # Forward pass
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+            # Track statistics
+            running_loss += loss.item() * images.size(0)
+            _, predicted = torch.max(outputs.data, 1)
+            total_samples += labels.size(0)
+            correct_predictions += (predicted == labels).sum().item()
+    
+    epoch_loss = running_loss / total_samples
+    epoch_acc = correct_predictions / total_samples
+    return epoch_loss, epoch_acc
