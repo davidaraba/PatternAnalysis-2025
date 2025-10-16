@@ -111,7 +111,7 @@ if __name__ == '__main__':
     print("Initialising model...")
     model = ConvNeXt(in_chans=1, num_classes=2, drop_path_rate=0.1).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.1)
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
     scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
 
     # Lists to store training history

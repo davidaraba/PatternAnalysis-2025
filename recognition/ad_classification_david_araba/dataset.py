@@ -12,7 +12,6 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from PIL import Image
 from pathlib import Path
 import torchvision.transforms as transforms
-from torchvision.transforms import TrivialAugmentWide
 import os
 
 # --- Configuration ---
@@ -31,7 +30,6 @@ DATASET_STD = (0.2254,)
 # Define separate, clear pipelines for training and testing.
 # The training transform includes data augmentation to help the model generalise (prevents overfitting).
 TRAIN_TRANSFORM = transforms.Compose([
-    TrivialAugmentWide(),
     transforms.RandomResizedCrop(IMG_SIZE, scale=(0.8, 1.0)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(10),
