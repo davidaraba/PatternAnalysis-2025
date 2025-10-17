@@ -30,9 +30,11 @@ DATASET_STD = (0.2254,)
 # Define separate, clear pipelines for training and testing.
 # The training transform includes data augmentation to help the model generalise (prevents overfitting).
 TRAIN_TRANSFORM = transforms.Compose([
-    transforms.RandomResizedCrop(IMG_SIZE, scale=(0.8, 1.0)),
+    transforms.Resize(256),
+    transforms.RandomCrop(IMG_SIZE),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(10),
+    transforms.RandomRotation(15),
+    transforms.ColorJitter(brightness=0.1, contrast=0.1),
     transforms.ToTensor(),
     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD),
 ])

@@ -3,13 +3,15 @@ train.py
 
 This script handles the training and validation of the ConvNeXt model on the ADNI dataset.
 It trains the model for a specified number of epochs, saves the best performing model,
-and plots the training and validation metrics.
+and plots the training and validation metrics. This version includes a learning rate
+warmup and refined regularization.
 """
 
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingLR
+# Import additional schedulers for warmup
+from torch.optim.lr_scheduler import CosineAnnealingLR, SequentialLR, LinearLR
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
@@ -22,7 +24,7 @@ from modules import ConvNeXt
 # Hyperparameters for the training process
 LEARNING_RATE = 5e-5
 BATCH_SIZE = 32
-EPOCHS = 150 
+EPOCHS = 250 # Increased epochs for longer training
 
 # Paths for saving outputs
 MODEL_SAVE_PATH = "best_model.pth"
@@ -38,26 +40,21 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     """
     Runs one full epoch of training.
     """
-    model.train()  # Set the model to training mode
+    model.train()
     running_loss = 0.0
     correct_predictions = 0
     total_samples = 0
 
-    # Use tqdm for a progress bar
     for images, labels in tqdm(dataloader, desc="Training"):
-        # Move data to the selected device (GPU or CPU)
         images, labels = images.to(device), labels.to(device)
 
-        # 1. Forward pass: compute predicted outputs
         outputs = model(images)
         loss = criterion(outputs, labels)
 
-        # 2. Backward pass and optimisation
-        optimizer.zero_grad()  # Clear previous gradients
-        loss.backward()        # Compute gradients
-        optimizer.step()       # Update weights
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-        # 3. Track statistics
         running_loss += loss.item() * images.size(0)
         _, predicted = torch.max(outputs.data, 1)
         total_samples += labels.size(0)
@@ -72,21 +69,18 @@ def evaluate(model, dataloader, criterion, device):
     """
     Evaluates the model's performance on the validation set.
     """
-    model.eval()  # Set the model to evaluation mode
+    model.eval()
     running_loss = 0.0
     correct_predictions = 0
     total_samples = 0
 
-    # No need to track gradients for validation
     with torch.no_grad():
         for images, labels in tqdm(dataloader, desc="Validating"):
             images, labels = images.to(device), labels.to(device)
 
-            # Forward pass
             outputs = model(images)
             loss = criterion(outputs, labels)
 
-            # Track statistics
             running_loss += loss.item() * images.size(0)
             _, predicted = torch.max(outputs.data, 1)
             total_samples += labels.size(0)
@@ -109,10 +103,16 @@ if __name__ == '__main__':
 
     # Initialise model, loss function, and optimiser
     print("Initialising model...")
-    model = ConvNeXt(in_chans=1, num_classes=2, drop_path_rate=0.1).to(device)
-    criterion = nn.CrossEntropyLoss()
+    # Increased drop_path_rate for more regularization
+    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
-    scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
+    
+    # Implement learning rate warmup combined with cosine annealing
+    warmup_epochs = 5
+    main_scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS - warmup_epochs, eta_min=1e-6)
+    warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=warmup_epochs)
+    scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[warmup_epochs])
 
     # Lists to store training history
     history = {
@@ -121,19 +121,17 @@ if __name__ == '__main__':
     }
 
     best_val_acc = 0.0
-
+    
     print("Starting training...")
     for epoch in range(EPOCHS):
         print(f"\n--- Epoch {epoch+1}/{EPOCHS} ---")
 
-        # Train and validate
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
 
         print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f} | "
               f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
-        # Store history
         history['train_loss'].append(train_loss)
         history['train_acc'].append(train_acc)
         history['val_loss'].append(val_loss)
@@ -144,7 +142,7 @@ if __name__ == '__main__':
             best_val_acc = val_acc
             torch.save(model.state_dict(), MODEL_SAVE_PATH)
             print(f"New best model saved with validation accuracy: {val_acc:.4f}")
-            
+
         # Update the learning rate scheduler at the end of every epoch
         scheduler.step()
 
@@ -173,6 +171,6 @@ if __name__ == '__main__':
 
     # --- 5. Final Test Evaluation ---
     print("\nEvaluating on the test set with the best model...")
-    model.load_state_dict(torch.load(MODEL_SAVE_PATH))
+    model.load_state_dict(torch.load(MODEL_SAVE_PATH, map_location=device))
     test_loss, test_acc = evaluate(model, test_loader, criterion, device)
     print(f"Final Test Loss: {test_loss:.4f}, Final Test Accuracy: {test_acc:.4f}")
