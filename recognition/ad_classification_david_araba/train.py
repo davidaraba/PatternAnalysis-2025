@@ -24,7 +24,7 @@ from modules import ConvNeXt
 # Hyperparameters for the training process
 LEARNING_RATE = 5e-5
 BATCH_SIZE = 32
-EPOCHS = 350 # Increased epochs for longer training
+EPOCHS = 250 # Increased epochs for longer training
 
 # Paths for saving outputs
 MODEL_SAVE_PATH = "best_model.pth"
