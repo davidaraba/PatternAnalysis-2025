@@ -3,7 +3,7 @@ predict.py
 
 This script demonstrates how to use the trained ConvNeXt model for inference.
 It loads the best model weights, takes a random sample of images from the test set,
-makes predictions, and visualizes the results in a dedicated output directory.
+makes predictions, and visualises the results in a dedicated output directory.
 """
 
 import torch
@@ -51,8 +51,8 @@ def predict_and_visualise(model_path, output_dir, num_images=9):
     labels_cpu = labels.cpu()
     predicted_indices_cpu = predicted_indices.cpu()
 
-    # 4. Create the visualization plot
-    print("Generating visualization...")
+    # 4. Create the visualisation plot
+    print("Generating visualisation...")
     # NEW: Create the output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     save_path = os.path.join(output_dir, "prediction_examples.png")
@@ -63,7 +63,7 @@ def predict_and_visualise(model_path, output_dir, num_images=9):
     for i in range(num_images):
         ax = axes[i]
         
-        # Un-normalize the image for correct display
+        # Un-normalise the image for correct display
         img = images_cpu[i].squeeze()
         mean = torch.tensor(DATASET_MEAN)
         std = torch.tensor(DATASET_STD)
@@ -78,5 +78,29 @@ def predict_and_visualise(model_path, output_dir, num_images=9):
 
     plt.tight_layout()
     plt.savefig(save_path)
-    print(f"Prediction visualization saved to {save_path}")
+    print(f"Prediction visualisation saved to {save_path}")
 
+# --- Main Execution Block ---
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Run prediction for a trained ConvNeXt model.")
+    parser.add_argument(
+        '--model-path', 
+        type=str, 
+        default=os.path.join("checkpoints", "best_model.pth"),
+        help="Path to the saved model file (.pth)."
+    )
+
+    # Add an argument for the output directory
+    parser.add_argument(
+        '--output-dir',
+        type=str,
+        default="prediction_outputs",
+        help="Directory to save the output visualisations."
+    )
+    args = parser.parse_args()
+
+    if not os.path.exists(args.model_path):
+        print(f"Error: Model file not found at {args.model_path}")
+        print("Please run train.py to generate the model file first.")
+    else:
+        predict_and_visualise(model_path=args.model_path, output_dir=args.output_dir)
