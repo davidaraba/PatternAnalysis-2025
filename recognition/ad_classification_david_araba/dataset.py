@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from PIL import Image
 from pathlib import Path
 import torchvision.transforms as transforms
+from torchvision.transforms import RandAugment
 import os
 
 # --- Configuration ---
@@ -29,12 +30,19 @@ DATASET_STD = (0.2254,)
 # --- Transformations ---
 # Define separate, clear pipelines for training and testing.
 # The training transform includes data augmentation to help the model generalise (prevents overfitting).
+# TRAIN_TRANSFORM = transforms.Compose([
+#     transforms.Resize(256),
+#     transforms.RandomCrop(IMG_SIZE),
+#     transforms.RandomHorizontalFlip(),
+#     transforms.RandomRotation(15),
+#     transforms.ColorJitter(brightness=0.1, contrast=0.1),
+#     transforms.ToTensor(),
+#     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD),
+# ])
+
 TRAIN_TRANSFORM = transforms.Compose([
-    transforms.Resize(256),
-    transforms.RandomCrop(IMG_SIZE),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15),
-    transforms.ColorJitter(brightness=0.1, contrast=0.1),
+    transforms.Resize(IMG_SIZE), 
+    RandAugment(),
     transforms.ToTensor(),
     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD),
 ])
