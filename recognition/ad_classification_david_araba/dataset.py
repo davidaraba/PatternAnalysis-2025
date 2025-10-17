@@ -120,7 +120,7 @@ class ADNIDataset(Dataset):
         return image, label
 
 # --- Dataloader Function ---
-def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4):
+def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, shuffle=None):
     """
     Creates and returns PyTorch DataLoader objects for the ADNI dataset.
 
@@ -147,10 +147,12 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4):
         print(f"Validation set size: {len(val_dataset)}")
         print(f"Classes: {full_dataset.class_to_idx}")
         
+        train_shuffle = True if shuffle is None else shuffle
+
         train_loader = DataLoader(
             dataset=train_dataset,
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=train_shuffle,
             num_workers=num_workers
         )
         val_loader = DataLoader(
@@ -164,11 +166,13 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4):
         test_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=False)
         print(f"Test dataset size: {len(test_dataset)}")
         print(f"Classes: {test_dataset.class_to_idx}")
+
+        test_shuffle = False if shuffle is None else shuffle
         
         test_loader = DataLoader(
             dataset=test_dataset,
             batch_size=batch_size,
-            shuffle=False,
+            shuffle=test_shuffle,
             num_workers=num_workers
         )
         return test_loader
