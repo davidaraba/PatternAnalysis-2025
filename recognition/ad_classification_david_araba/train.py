@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # Initialise model, loss function, and optimiser
     print("Initialising model...")
     # Increased drop_path_rate for more regularization
-    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.4).to(device)
+    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device)
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
     
@@ -113,15 +113,13 @@ if __name__ == '__main__':
     main_scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS - warmup_epochs, eta_min=1e-6)
     warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=warmup_epochs)
     scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[warmup_epochs])
-
+    
     # Lists to store training history
     history = {
         'train_loss': [], 'train_acc': [],
         'val_loss': [], 'val_acc': []
     }
 
-    best_val_acc = 0.0
-    
     print("Starting training...")
     for epoch in range(EPOCHS):
         print(f"\n--- Epoch {epoch+1}/{EPOCHS} ---")
