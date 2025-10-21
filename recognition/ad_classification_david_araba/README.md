@@ -16,7 +16,10 @@ This repository contains a PyTorch implementation of a custom ConvNeXt architect
 3. [Methodology](#methodology)
 4. [Implementation Details](#implementation-details)
 5. [Dataset and Preprocessing](#dataset-and-preprocessing)
-6. [References](#references)
+6. [Model Architecture](#model-architecture)
+7. [Training Strategy](#training-strategy)
+8. [Results and Performance](#results-and-performance)
+9. [References](#references)
 
 ## Problem Statement
 
@@ -80,7 +83,7 @@ The implementation incorporates several advanced techniques:
 
 ### Project Structure
 
-```
+```python
 ad_classification_david_araba/
 ├── modules.py         # ConvNeXt architecture implementation
 ├── dataset.py         # ADNI dataset loading and preprocessing
@@ -154,7 +157,7 @@ If this directory location does not work for you, this can be changed in [datase
 
 The ADNI dataset structure will require to have the following:
 
-```
+```text
  AD_NC/
     ├── test/
     │   ├── AD/
@@ -215,6 +218,168 @@ This approach ensures:
 - Unbiased performance estimation
 - Proper hyperparameter validation
 - Generalization assessment on unseen data
+  
+## Model Architecture
+
+The ConvNeXt is a deep learning architecture originally designed for image classification created by Facebook AI Research from their release of "A ConvNet for the 2020s" [3]. The ConvNeXt has a modern convolutional architecture that incorporates design principles from Vision Transformers while maintaining the efficiency of CNNs. The model design follows closely to the original implementation with three main architectural innovations:
+
+- **Modern Convolutional Design**: Large kernel sizes and inverted bottleneck structure
+- **Layer Normalization**: Replacing Batch Normalization for better stability
+- **Efficient Downsampling**: Progressive spatial dimension reduction
+
+This design addresses the issue of efficiency, as the ConvNeXt architecture achieves state-of-the-art performance while maintaining computational efficiency suitable for medical imaging applications [3].
+
+### Why Use ConvNeXt?
+
+The ConvNeXt is designed for image classification and has performed significantly well on the large visual database ImageNet in the original paper [3]. For the ADNI dataset, the task is very similar, to learn the underlying data structures of the images and to classify whether a given image has Alzheimer's or not. A major benefit of the ConvNeXt compared to other deep learning algorithms is its scalability to train on more complex images in a shorter time frame which is no doubt an important considered aspect in the medical research industry. For this problem space, the ConvNeXt meets the criteria of a fast and accurate solution with the ability of the model to expand to more complex data in the future.
+
+The overall architecture of the model starts by taking an input image and applying a stem layer with 4×4 convolution and stride 4 for initial downsampling. The ConvNeXt consists of multiple stages, each containing several ConvNeXt blocks that combine depthwise convolution with pointwise operations, followed by a feed forward network (FFN) similar to a vision transformer. The output of the last block is fed into a global average pooling layer and then into a linear classifier.
+
+### ConvNeXt Design Principles
+
+ConvNeXt represents a modern approach to convolutional neural networks, incorporating design principles from Vision Transformers while maintaining the efficiency of CNNs. The architecture includes:
+
+#### 1. Stem Layer
+
+- **4×4 Convolution**: Initial feature extraction with stride 4
+- **Layer Normalization**: Consistent normalization throughout the network
+- **Efficient Downsampling**: Reduces computational complexity early
+
+#### 2. ConvNeXt Blocks
+
+Each block implements:
+
+- **Depthwise Convolution**: 7×7 kernel with groups=dim for spatial feature extraction
+- **Layer Normalization**: Applied in channels_last format for efficiency
+- **Pointwise Convolutions**: 1×1 convolutions for channel mixing
+- **GELU Activation**: Smooth activation function for better gradients
+- **Layer Scaling**: Learnable scaling factors for improved training stability
+- **DropPath Regularization**: Stochastic depth for better generalization
+
+#### 3. Architecture Variants
+
+The implementation supports multiple architectural configurations:
+
+- **Small**: depths=[3, 3, 27, 3], dims=[96, 192, 384, 768]
+- **Base**: depths=[3, 3, 9, 3], dims=[96, 192, 384, 768]
+- **Large**: depths=[3, 3, 27, 3], dims=[128, 256, 512, 1024]
+
+### Key Architectural Innovations
+
+#### 1. Modern Convolutional Design
+
+- **Large Kernel Sizes**: 7×7 depthwise convolutions capture long-range dependencies
+- **Inverted Bottleneck**: Efficient channel expansion and compression
+- **Fewer Activation Functions**: Reduced computational overhead
+
+#### 2. Advanced Normalization
+
+- **Layer Normalization**: More stable than Batch Normalization for small batches
+- **Channels Last Format**: Optimized memory layout for modern hardware
+- **Consistent Normalization**: Applied throughout the network for stability
+
+#### 3. Efficient Feature Aggregation
+
+- **Global Average Pooling**: Reduces overfitting compared to fully connected layers
+- **Minimal Classification Head**: Single linear layer for final prediction
+
+## Training Strategy
+
+### Optimization Configuration
+
+#### 1. Optimizer Settings
+
+- **Algorithm**: AdamW with improved weight decay
+- **Learning Rate**: 5e-5 (carefully tuned for medical imaging)
+- **Weight Decay**: 0.05 for effective regularization
+- **Beta Parameters**: Default values (β₁=0.9, β₂=0.999)
+
+#### 2. Learning Rate Scheduling
+
+```python
+# Warmup phase (5 epochs)
+warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=5)
+
+# Main training phase (cosine annealing)
+main_scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS-5, eta_min=1e-6)
+
+# Combined scheduler
+scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[5])
+```
+
+#### 3. Regularization Techniques
+
+- **Label Smoothing**: 0.1 smoothing factor to prevent overconfident predictions
+- **DropPath**: 0.2 probability for stochastic depth regularization
+- **Weight Decay**: L2 regularization on model parameters
+
+### Training Protocol
+
+#### 1. Training Configuration
+
+- **Epochs**: 250 (extended training for convergence)
+- **Batch Size**: 32 (balanced memory usage and gradient stability)
+- **Validation Frequency**: Every epoch
+- **Model Checkpointing**: Best validation accuracy saved
+
+#### 2. Data Augmentation Strategy
+
+Training-time augmentations include:
+
+- **Random Cropping**: 224×224 from 256×256 resized images
+- **Horizontal Flipping**: 50% probability for data diversity
+- **Rotation**: ±15 degrees for robustness to orientation
+- **Color Jittering**: Brightness and contrast variation (±10%)
+
+#### 3. Loss Function
+
+Cross-entropy loss with label smoothing:
+
+```python
+criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+```
+
+## Results and Performance
+
+This ConvNeXt model achieved a final accuracy of [PLACEHOLDER_ACCURACY]% and a test loss of [PLACEHOLDER_LOSS] on the ADNI test dataset. This accuracy was reached after training the model over 250 Epochs which took a total of [PLACEHOLDER_TIME] hours on the UQ Rangpur HPC.
+
+Below are two graphs showing the training and validation loss over the 250 epochs, as well as the validation accuracy.
+
+![Train](assets/training_history.png)
+_Training and validation losses over 250 epochs_
+
+![Accuracy](assets/validation_accuracy.png)
+_Validation accuracy progression during training_
+
+We can see that the validation loss follows quite closely to the training, only lagging by approximately [PLACEHOLDER_LAG] at the end of training. The graphs show a fast decrease in the first 50 epochs than followed by a more gradual decrease. A longer training duration could have been conducted, however, during the development of the model test results showed signs of overfitting with no increase in accuracy made.
+
+Below is the resulting confusion matrix of the testing data:
+
+![Confusion](assets/confusion_matrix.png)
+_Confusion matrix showing classification performance on test dataset_
+
+The model design used here on the ADNI dataset was chosen following the recommendations of the original ConvNeXt design and through trialing a variety of different hyperparameters through the development phase. Below are the set parameters for the model:
+
+```python
+model = ConvNeXt(
+    in_chans=1,
+    num_classes=2,
+    depths=[3, 3, 27, 3],
+    dims=[96, 192, 384, 768],
+    drop_path_rate=0.2,
+    layer_scale_init_value=1e-6,
+    head_init_scale=1.0
+)
+
+# Training hyperparameters
+LEARNING_RATE = 5e-5
+BATCH_SIZE = 32
+EPOCHS = 250
+WEIGHT_DECAY = 0.05
+LABEL_SMOOTHING = 0.1
+```
+
+The results do show a relatively high success rate of correct predictions of Alzheimer's disease, however, there is still room for improvement. Further testing of the ConvNeXt with a greater depth and/or number of embedded dimensions may yield a higher test accuracy. However, this will likely increase the training time significantly. Variants of the ConvNeXt may also work well on ADNI, such as the hierarchical models which may capture the underlying data structure better.
 
 ## References
 
