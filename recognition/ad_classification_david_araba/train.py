@@ -120,6 +120,8 @@ if __name__ == '__main__':
         'val_loss': [], 'val_acc': []
     }
 
+    best_val_acc = 0
+
     print("Starting training...")
     for epoch in range(EPOCHS):
         print(f"\n--- Epoch {epoch+1}/{EPOCHS} ---")
