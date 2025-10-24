@@ -30,3 +30,15 @@ COMP3710_Report_v1.64_FINAL.txt
 
 # README text file
 README.txt
+
+# Experiment directories
+../ad_classification2/
+../ad_classification3/
+../ad_classification4/
+../ad_classification_lr1e5/
+../ad_classification_control_rerun/
+../ad_classification_dp03_rerun/
+../ad_classification_base_rerun/
+
+# Main logs directory in parent folder
+../logs/
