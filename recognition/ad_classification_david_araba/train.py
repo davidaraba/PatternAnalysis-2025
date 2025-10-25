@@ -22,7 +22,7 @@ from modules import ConvNeXt
 
 # --- Configuration ---
 # Hyperparameters for the training process
-LEARNING_RATE = 5e-5
+LEARNING_RATE = 5e-4
 BATCH_SIZE = 32
 EPOCHS = 250 # Increased epochs for longer training
 
