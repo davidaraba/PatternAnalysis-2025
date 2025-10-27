@@ -140,7 +140,7 @@ The ADNI dataset can be downloaded from their website, [ADNI website](https://ad
 
 Here is an example image of what the data looks like from the training set:
 
-![Example](assets/example_image.png)
+![Example ADNI Scan](images/assets/example_adni_scan.jpeg)
 _Example brain scan from the ADNI dataset showing a typical MRI slice used for classification_
 
 ## Dataset and Preprocessing
@@ -346,7 +346,7 @@ criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
 ## Results and Performance
 
-This ConvNeXt model achieved a final accuracy of [PLACEHOLDER_ACCURACY]% and a test loss of [PLACEHOLDER_LOSS] on the ADNI test dataset. This accuracy was reached after training the model over 250 Epochs which took a total of [PLACEHOLDER_TIME] hours on the UQ Rangpur HPC.
+This ConvNeXt model achieved a final accuracy of **77.46%** and a test loss of [PLACEHOLDER_LOSS] on the ADNI test dataset. This accuracy was reached after training the model over 250 Epochs which took a total of **7.5 hours** on the UQ Rangpur HPC.
 
 Below are two graphs showing the training and validation loss over the 250 epochs, as well as the validation accuracy.
 
