@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # Initialise model, loss function, and optimiser
     print("Initialising model...")
     # Increased drop_path_rate for more regularization
-    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device)
+    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.4).to(device)
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
     

@@ -35,6 +35,8 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomCrop(IMG_SIZE),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(15),
+    transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.95, 1.05), shear=5),
+    transforms.GaussianBlur(kernel_size=(3, 7), sigma=(0.1, 1.0)),
     transforms.ColorJitter(brightness=0.1, contrast=0.1),
     transforms.ToTensor(),
     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD),
