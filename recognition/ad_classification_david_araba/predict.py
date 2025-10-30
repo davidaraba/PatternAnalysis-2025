@@ -35,7 +35,7 @@ def predict_and_visualise(model_path, output_dir, num_images=9):
     # 2. Load a random batch of test data
     print("Loading a random batch of test data...")
     # Using shuffle=True on the test loader produces random samples
-    test_loader = get_adni_dataloader(batch_size=num_images, train=False, shuffle=True)
+    test_loader = get_adni_dataloader(batch_size=num_images, train=False, shuffle=True, num_workers=0)
     images, labels = next(iter(test_loader))
     images, labels = images.to(device), labels.to(device)
 
