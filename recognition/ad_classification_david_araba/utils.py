@@ -16,18 +16,24 @@ from dataset import ADNIDataset, ADNI_ROOT_PATH
 def calculate_mean_std():
     """
     Calculates the mean and standard deviation of the training dataset.
+    This is used to get the normalization constants for the transforms.
+
+    Returns:
+        tuple: (mean, std)
     """
     print("Calculating dataset statistics...")
     
     # 1. Create a dataset instance with a minimal transform (just ToTensor)
     # We don't want augmentation to affect the true statistics.
     # ToTensor() also scales pixel values from [0, 255] to [0.0, 1.0].
+    
+    # Pass the ToTensor transform directly into the constructor,
+    # as the __init__ signature in dataset.py was changed.
     dataset = ADNIDataset(
         root_dir=ADNI_ROOT_PATH,
-        train=True
+        train=True,
+        transform=transforms.ToTensor()
     )
-    # Temporarily override the transform
-    dataset.transform = transforms.ToTensor()
 
     # 2. Use a DataLoader to iterate through the data efficiently
     loader = DataLoader(

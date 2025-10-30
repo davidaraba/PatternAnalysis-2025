@@ -39,22 +39,36 @@ MODEL_SAVE_PATH = os.path.join(CHECKPOINT_DIR, MODEL_SAVE_PATH)
 def train_one_epoch(model, dataloader, criterion, optimizer, device):
     """
     Runs one full epoch of training.
+
+    Args:
+        model (torch.nn.Module): The model to be trained.
+        dataloader (torch.utils.data.DataLoader): The training data loader.
+        criterion (torch.nn.Module): The loss function.
+        optimizer (torch.optim.Optimizer): The optimizer.
+        device (torch.device): The device to run training on (e.g., 'cuda' or 'cpu').
+
+    Returns:
+        tuple: (epoch_loss, epoch_acc)
     """
-    model.train()
+    model.train() # Set model to training mode
     running_loss = 0.0
     correct_predictions = 0
     total_samples = 0
 
+    # Iterate over the training data
     for images, labels in tqdm(dataloader, desc="Training"):
         images, labels = images.to(device), labels.to(device)
 
+        # Forward pass
         outputs = model(images)
         loss = criterion(outputs, labels)
 
+        # Backward pass and optimization
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
+        # Update statistics
         running_loss += loss.item() * images.size(0)
         _, predicted = torch.max(outputs.data, 1)
         total_samples += labels.size(0)
@@ -67,20 +81,32 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
 # --- 2. The Validation/Evaluation Function ---
 def evaluate(model, dataloader, criterion, device):
     """
-    Evaluates the model's performance on the validation set.
+    Evaluates the model's performance on the validation or test set.
+
+    Args:
+        model (torch.nn.Module): The model to be evaluated.
+        dataloader (torch.utils.data.DataLoader): The validation/test data loader.
+        criterion (torch.nn.Module): The loss function.
+        device (torch.device): The device to run evaluation on.
+
+    Returns:
+        tuple: (epoch_loss, epoch_acc)
     """
-    model.eval()
+    model.eval() # Set model to evaluation mode
     running_loss = 0.0
     correct_predictions = 0
     total_samples = 0
 
+    # Disable gradient calculations
     with torch.no_grad():
         for images, labels in tqdm(dataloader, desc="Validating"):
             images, labels = images.to(device), labels.to(device)
 
+            # Forward pass
             outputs = model(images)
             loss = criterion(outputs, labels)
 
+            # Update statistics
             running_loss += loss.item() * images.size(0)
             _, predicted = torch.max(outputs.data, 1)
             total_samples += labels.size(0)
@@ -103,9 +129,13 @@ if __name__ == '__main__':
 
     # Initialise model, loss function, and optimiser
     print("Initialising model...")
-    # Increased drop_path_rate for more regularization
+    # Using 'ConvNeXt Small' architecture with 1 input channel and 0.4 DropPath rate
     model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.4).to(device)
+    
+    # Loss function with Label Smoothing
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    
+    # Optimizer (AdamW)
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.05)
     
     # Implement learning rate warmup combined with cosine annealing
@@ -114,24 +144,28 @@ if __name__ == '__main__':
     warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=warmup_epochs)
     scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[warmup_epochs])
     
-    # Lists to store training history
+    # Lists to store training history for plotting
     history = {
         'train_loss': [], 'train_acc': [],
         'val_loss': [], 'val_acc': []
     }
 
-    best_val_acc = 0
+    best_val_acc = 0.0 # Use float for accuracy
 
     print("Starting training...")
     for epoch in range(EPOCHS):
         print(f"\n--- Epoch {epoch+1}/{EPOCHS} ---")
-
+        
+        # --- Training Step ---
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        
+        # --- Validation Step ---
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
 
         print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f} | "
               f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
+        # Store history
         history['train_loss'].append(train_loss)
         history['train_acc'].append(train_acc)
         history['val_loss'].append(val_loss)
@@ -143,14 +177,16 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), MODEL_SAVE_PATH)
             print(f"New best model saved with validation accuracy: {val_acc:.4f}")
 
-        # Update the learning rate scheduler at the end of every epoch
+        # Update the learning rate scheduler
         scheduler.step()
 
     print("\nTraining finished!")
 
     # --- 4. Plotting and Saving Results ---
-    print("Plotting training history...")
+    print(f"Plotting training history and saving to {PLOT_SAVE_PATH}...")
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    
+    # Plot Loss
     ax1.plot(history['train_loss'], label='Train Loss')
     ax1.plot(history['val_loss'], label='Validation Loss')
     ax1.set_title('Loss History')
@@ -158,6 +194,7 @@ if __name__ == '__main__':
     ax1.set_ylabel('Loss')
     ax1.legend()
     
+    # Plot Accuracy
     ax2.plot(history['train_acc'], label='Train Accuracy')
     ax2.plot(history['val_acc'], label='Validation Accuracy')
     ax2.set_title('Accuracy History')
@@ -167,10 +204,13 @@ if __name__ == '__main__':
     
     plt.tight_layout()
     plt.savefig(PLOT_SAVE_PATH)
-    print(f"Training plot saved to {PLOT_SAVE_PATH}")
+    print(f"Training plot saved.")
 
     # --- 5. Final Test Evaluation ---
     print("\nEvaluating on the test set with the best model...")
+    # Load the best weights saved during training
     model.load_state_dict(torch.load(MODEL_SAVE_PATH, map_location=device))
+    
+    # Run evaluation on the test set
     test_loss, test_acc = evaluate(model, test_loader, criterion, device)
     print(f"Final Test Loss: {test_loss:.4f}, Final Test Accuracy: {test_acc:.4f}")
