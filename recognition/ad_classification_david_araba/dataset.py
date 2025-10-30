@@ -80,15 +80,23 @@ class ADNIDataset(Dataset):
         if not self.classes:
             raise FileNotFoundError(f"No class folders found in {self.data_path}")
 
+        # --- FIX: Sort the file list to ensure reproducible splits ---
         # Load image paths and corresponding labels
         for class_name in self.classes:
             class_path = self.data_path / class_name
             class_idx = self.class_to_idx[class_name]
             
-            for img_file in class_path.iterdir():
-                if img_file.suffix.lower() in ['.jpg', '.jpeg', '.png']:
-                    self.image_paths.append(img_file)
-                    self.labels.append(class_idx)
+            # Create a sorted list of image files first
+            # This ensures the dataset order is deterministic
+            image_files = sorted([
+                f for f in class_path.iterdir() 
+                if f.suffix.lower() in ['.jpg', '.jpeg', '.png']
+            ])
+            
+            # Add the sorted files and their labels to the lists
+            for img_file in image_files:
+                self.image_paths.append(img_file)
+                self.labels.append(class_idx)
         
     def __len__(self):
         """Returns the total number of images in the dataset."""
