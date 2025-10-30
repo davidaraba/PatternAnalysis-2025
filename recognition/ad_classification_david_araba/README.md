@@ -26,7 +26,7 @@ This repository contains a PyTorch implementation of a custom ConvNeXt architect
 
 ## Problem Statement
 
-Alzheimer's disease represents one of the most significant global health challenges of the 21st century, affecting over 50 million people worldwide [1]. Early and accurate diagnosis is crucial for effective treatment planning and patient care management. Traditional diagnostic methods rely heavily on clinical assessment and neuropsychological testing, which can be subjective, time-consuming, and may miss early-stage indicators.
+Alzheimer's disease represents one of the most significant global health challenges of the 21st century, affecting millions of people worldwide [1]. Early and accurate diagnosis is crucial for effective treatment planning and patient care management. Traditional diagnostic methods rely heavily on clinical assessment and neuropsychological testing, which can be subjective, time-consuming, and may miss early-stage indicators.
 
 The primary objective of this project is to develop an automated, reliable system for classifying brain scan images to distinguish between individuals with Alzheimer's disease and cognitively normal subjects. This classification task addresses the critical need for objective, scalable diagnostic tools that can assist medical professionals in making informed clinical decisions.
 
@@ -155,7 +155,7 @@ _Example brain scan from the ADNI dataset showing a typical MRI slice used for c
 
 ### ADNI Dataset Description
 
-The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a comprehensive collection of neuroimaging and biomarker data designed to accelerate research into Alzheimer's disease [2]. This implementation utilizes the preprocessed version containing:
+The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a comprehensive collection of neuroimaging and biomarker data designed to accelerate research into Alzheimer's disease [2]. The MRI data were acquired and processed according to the standardized imaging protocols described by Jack et al. [7], ensuring consistent quality and reproducibility across scanners and participants. This implementation utilizes the preprocessed version containing:
 
 - **Image Format**: Grayscale medical images (loaded as single-channel 'L' mode).
 - **Classes**: Alzheimer's Disease (AD) and Cognitively Normal (CN)
@@ -247,7 +247,7 @@ This design addresses the issue of efficiency, as the ConvNeXt architecture achi
 
 ### Why Use ConvNeXt?
 
-The ConvNeXt is designed for image classification and has performed significantly well on the large visual database ImageNet in the original paper [3]. For the ADNI dataset, the task is very similar, to learn the underlying data structures of the images and to classify whether a given image has Alzheimer's or not. A major benefit of the ConvNeXt compared to other deep learning algorithms is its scalability to train on more complex images in a shorter time frame which is no doubt an important considered aspect in the medical research industry. For this problem space, the ConvNeXt meets the criteria of a fast and accurate solution with the ability of the model to expand to more complex data in the future.
+The ConvNeXt is designed for image classification and has performed significantly well on the large visual database ImageNet in the original paper [3]. It builds upon the foundational ResNet architecture [4], which first introduced residual learning and skip connections that made very deep networks trainable. For the ADNI dataset, the task is very similar, to learn the underlying data structures of the images and to classify whether a given image has Alzheimer's or not. A major benefit of the ConvNeXt compared to other deep learning algorithms is its scalability to train on more complex images in a shorter time frame which is no doubt an important considered aspect in the medical research industry. For this problem space, the ConvNeXt meets the criteria of a fast and accurate solution with the ability of the model to expand to more complex data in the future.
 
 The overall architecture of the model starts by taking an input image and applying a stem layer with 4×4 convolution and stride 4 for initial downsampling. The ConvNeXt consists of multiple stages, each containing several ConvNeXt blocks that combine depthwise convolution with pointwise operations, followed by a feed forward network (FFN) similar to a vision transformer. The output of the last block is fed into a global average pooling layer and then into a linear classifier.
 
@@ -381,7 +381,7 @@ _Confusion matrix showing classification performance on the test dataset._
 
 The final model and hyperparameters used to achieve this result are detailed below. These parameters were selected after experimentation to balance performance and training stability.
 
-**Model Architecture (`modules.py`):**
+**Model Architecture (`train.py`):**
 
 ```python
 model = ConvNeXt(
@@ -578,12 +578,6 @@ The `train.py` script automatically saves two key outputs:
 [6] Ba, J. L., Kiros, J. R., & Hinton, G. E. (2016). Layer normalization. _arXiv preprint arXiv:1607.06450_.
 
 [7] Jack Jr, C. R., Bernstein, M. A., Fox, N. C., Thompson, P., Alexander, G., Harvey, D., ... & Weiner, M. W. (2008). The Alzheimer's disease neuroimaging initiative (ADNI): MRI methods. _Journal of Magnetic Resonance Imaging_, 27(4), 685-691.
-
-[8] Bron, E. E., Smits, M., van der Flier, W. M., Vrenken, H., Barkhof, F., Scheltens, P., ... & Klein, S. (2015). Standardized evaluation of algorithms for computer-aided diagnosis of dementia based on structural MRI: the CADDementia challenge. _NeuroImage_, 111, 562-579.
-
-[9] PyTorch Team. (2023). PyTorch Documentation. Retrieved from <https://pytorch.org/docs/>
-
-[10] TIMM Contributors. (2023). PyTorch Image Models. Retrieved from <https://github.com/rwightman/pytorch-image-models>
 
 ---
 
