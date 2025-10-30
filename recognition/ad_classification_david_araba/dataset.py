@@ -57,7 +57,7 @@ class ADNIDataset(Dataset):
     It automatically finds class folders (e.g., 'AD', 'NC') and loads images.
     """
 
-    def __init__(self, root_dir, train=True):
+    def __init__(self, root_dir, train=True, transform=None):
         """
         Initialises the dataset object.
 
@@ -65,9 +65,10 @@ class ADNIDataset(Dataset):
             root_dir (str or Path): The root directory of the ADNI dataset,
                                     containing 'train' and 'test' subfolders.
             train (bool): If True, loads the training set; otherwise, loads the test set.
+            transform (callable, optional): A function/transform to apply to the images.
         """
         self.data_path = Path(root_dir) / ('train' if train else 'test')
-        self.transform = TRAIN_TRANSFORM if train else TEST_TRANSFORM
+        self.transform = transform # Use the provided transform
 
         self.image_paths = []
         self.labels = []
@@ -118,7 +119,7 @@ class ADNIDataset(Dataset):
 def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, shuffle=None):
     """
     Creates and returns PyTorch DataLoader objects for the ADNI dataset.
-
+    
     Args:
         batch_size (int): The number of samples per batch.
         train (bool): If True, returns (train_loader, val_loader).
@@ -130,17 +131,35 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, sh
         A DataLoader or a tuple of DataLoaders.
     """
     if train:
-        full_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=True)
+        # Create a dataset instance *just for validation* with TEST_TRANSFORM
+        val_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=True, transform=TEST_TRANSFORM)
+        
+        # Create a dataset instance *just for training* with TRAIN_TRANSFORM
+        train_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=True, transform=TRAIN_TRANSFORM)
+
+        # Get the total length
+        total_len = len(train_dataset)
         
         # Split the full training set into training and validation sets
-        train_size = int((1 - val_split) * len(full_dataset))
-        val_size = len(full_dataset) - train_size
-        train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
+        train_size = int((1 - val_split) * total_len)
+        val_size = total_len - train_size
         
-        print(f"Full training dataset size: {len(full_dataset)}")
+        # Use random_split to get the indices for each set
+        # We must use the same generator to ensure the splits are disjoint
+        generator = torch.Generator().manual_seed(42) # Use a fixed seed for reproducibility
+        train_indices, val_indices = random_split(range(total_len), [train_size, val_size], generator=generator)
+
+        # Create the final Subset objects using the correct indices and datasets
+        train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
+        val_dataset = torch.utils.data.Subset(val_dataset, val_indices)
+        
+        print(f"Full training dataset size: {total_len}")
         print(f"Training set size: {len(train_dataset)}")
         print(f"Validation set size: {len(val_dataset)}")
-        print(f"Classes: {full_dataset.class_to_idx}")
+        
+        # We need to get the classes from one of the dataset objects
+        # We'll grab it from the val_dataset's underlying dataset
+        print(f"Classes: {val_dataset.dataset.class_to_idx}")
         
         train_shuffle = True if shuffle is None else shuffle
 
@@ -158,7 +177,8 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, sh
         )
         return train_loader, val_loader
     else:
-        test_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=False)
+        # Test set correctly uses TEST_TRANSFORM
+        test_dataset = ADNIDataset(root_dir=ADNI_ROOT_PATH, train=False, transform=TEST_TRANSFORM)
         print(f"Test dataset size: {len(test_dataset)}")
         print(f"Classes: {test_dataset.class_to_idx}")
 
@@ -182,6 +202,17 @@ if __name__ == '__main__':
     train_images, train_labels = next(iter(train_loader))
     print(f"Train batch shape: {train_images.shape}") # Should be [32, 1, 224, 224]
     print(f"Train labels shape: {train_labels.shape}") # Should be [32]
+    
+    # Check if augmentation is applied (mean should be random)
+    print(f"Train batch mean: {train_images.mean()}") 
+
+    # Fetch one batch from the val loader
+    val_images, val_labels = next(iter(val_loader))
+    print(f"Val batch shape: {val_images.shape}") # Should be [32, 1, 224, 224]
+    print(f"Val labels shape: {val_labels.shape}") # Should be [32]
+    
+    # Check if augmentation is NOT applied (mean should be more stable)
+    print(f"Val batch mean: {val_images.mean()}") 
 
     print("\n--- Testing Test Dataloader ---")
     test_loader = get_adni_dataloader(batch_size=32, train=False)
