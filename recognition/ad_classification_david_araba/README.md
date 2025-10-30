@@ -197,7 +197,7 @@ The training pipeline uses a robust set of augmentations:
 ```python
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.Resize(256),
-    transforms.RandomCrop(224),
+    transforms.RandomCrop(IMG_SIZE),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(15),
     transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.95, 1.05), shear=5),
@@ -215,7 +215,7 @@ The test and validation pipeline is deterministic to ensure consistent evaluatio
 ```python
 TEST_TRANSFORM = transforms.Compose([
     transforms.Resize(256),
-    transforms.CenterCrop(224),
+    transforms.CenterCrop(IMG_SIZE),
     transforms.ToTensor(),
     transforms.Normalize(mean=DATASET_MEAN, std=DATASET_STD)
 ])
@@ -314,13 +314,13 @@ The implementation supports multiple architectural configurations:
 
 ```python
 # Warmup phase (5 epochs)
-warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=5)
+warmup_scheduler = LinearLR(optimizer, start_factor=1e-6, end_factor=1.0, total_iters=warmup_epochs)
 
 # Main training phase (cosine annealing)
-main_scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS-5, eta_min=1e-6)
+main_scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS - warmup_epochs, eta_min=1e-6)
 
 # Combined scheduler
-scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[5])
+scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[warmup_epochs])
 ```
 
 #### 3. Regularization Techniques
@@ -388,10 +388,7 @@ model = ConvNeXt(
     in_chans=1,
     num_classes=2,
     depths=[3, 3, 27, 3],
-    dims=[96, 192, 384, 768],
     drop_path_rate=0.4,
-    layer_scale_init_value=1e-6,
-    head_init_scale=1.0
 )
 ```
 
@@ -401,8 +398,6 @@ model = ConvNeXt(
 LEARNING_RATE = 5e-4
 BATCH_SIZE = 32
 EPOCHS = 250
-WEIGHT_DECAY = 0.05
-LABEL_SMOOTHING = 0.1
 ```
 
 The results demonstrate a high success rate in correctly identifying Alzheimer's disease. While the 80% accuracy target was closely approached, this 78% result is robust and achieved with a well-regularized model, as shown by the validation curves.
