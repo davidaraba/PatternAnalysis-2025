@@ -7,7 +7,7 @@
 
 echo "Starting job on $(hostname)"
 
-# 1. Activate your Conda environment
+# 1. Activate Conda environment
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate adni-env
 

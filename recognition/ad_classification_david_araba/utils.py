@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from tqdm import tqdm
 
-# This import assumes utils.py and dataset.py are in the same folder.
 from dataset import ADNIDataset, ADNI_ROOT_PATH
 
 def calculate_mean_std():
@@ -24,7 +23,7 @@ def calculate_mean_std():
     print("Calculating dataset statistics...")
     
     # 1. Create a dataset instance with a minimal transform (just ToTensor)
-    # We don't want augmentation to affect the true statistics.
+    # Don't want augmentation to affect the true statistics.
     # ToTensor() also scales pixel values from [0, 255] to [0.0, 1.0].
     
     # Pass the ToTensor transform directly into the constructor,
@@ -44,7 +43,7 @@ def calculate_mean_std():
     )
 
     # 3. Initialise variables to hold running sums
-    # We calculate the sum and sum of squares to derive mean and std
+    # Calculate the sum and sum of squares to derive mean and std
     channel_sum = 0.
     channel_sum_sq = 0.
     num_pixels = 0

@@ -80,7 +80,7 @@ class ADNIDataset(Dataset):
         if not self.classes:
             raise FileNotFoundError(f"No class folders found in {self.data_path}")
 
-        # --- FIX: Sort the file list to ensure reproducible splits ---
+        # --- Sort the file list to ensure reproducible splits ---
         # Load image paths and corresponding labels
         for class_name in self.classes:
             class_path = self.data_path / class_name
@@ -153,7 +153,7 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, sh
         val_size = total_len - train_size
         
         # Use random_split to get the indices for each set
-        # We must use the same generator to ensure the splits are disjoint
+        # Must use the same generator to ensure the splits are disjoint
         generator = torch.Generator().manual_seed(42) # Use a fixed seed for reproducibility
         train_indices, val_indices = random_split(range(total_len), [train_size, val_size], generator=generator)
 
@@ -165,8 +165,8 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, sh
         print(f"Training set size: {len(train_dataset)}")
         print(f"Validation set size: {len(val_dataset)}")
         
-        # We need to get the classes from one of the dataset objects
-        # We'll grab it from the val_dataset's underlying dataset
+        # Need to get the classes from one of the dataset objects
+        # Grab from the val_dataset's underlying dataset
         print(f"Classes: {val_dataset.dataset.class_to_idx}")
         
         train_shuffle = True if shuffle is None else shuffle
@@ -201,23 +201,23 @@ def get_adni_dataloader(batch_size, train=True, val_split=0.2, num_workers=4, sh
         return test_loader
 
 # --- Self-Testing Block ---
-# A great practice to ensure your file works independently.
+# A great practice to ensure file works independently.
 if __name__ == '__main__':
     print("--- Testing Training/Validation Dataloader ---")
     train_loader, val_loader = get_adni_dataloader(batch_size=32, train=True)
     
     # Fetch one batch from the train loader
     train_images, train_labels = next(iter(train_loader))
-    print(f"Train batch shape: {train_images.shape}") # Should be [32, 1, 224, 224]
-    print(f"Train labels shape: {train_labels.shape}") # Should be [32]
+    print(f"Train batch shape: {train_images.shape}") 
+    print(f"Train labels shape: {train_labels.shape}") 
     
     # Check if augmentation is applied (mean should be random)
     print(f"Train batch mean: {train_images.mean()}") 
 
     # Fetch one batch from the val loader
     val_images, val_labels = next(iter(val_loader))
-    print(f"Val batch shape: {val_images.shape}") # Should be [32, 1, 224, 224]
-    print(f"Val labels shape: {val_labels.shape}") # Should be [32]
+    print(f"Val batch shape: {val_images.shape}") 
+    print(f"Val labels shape: {val_labels.shape}") 
     
     # Check if augmentation is NOT applied (mean should be more stable)
     print(f"Val batch mean: {val_images.mean()}") 

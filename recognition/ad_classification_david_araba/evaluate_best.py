@@ -16,7 +16,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import matplotlib.pyplot as plt
 import seaborn as sns # For plotting confusion matrix
 
-# Import from your project files
+# Import from project files
 from dataset import get_adni_dataloader, DATASET_MEAN, DATASET_STD
 from modules import ConvNeXt
 
@@ -76,7 +76,7 @@ def find_best_threshold(probabilities, labels):
     best_threshold = 0.5
     best_f1 = 0.0
     
-    # We assume class 1 ('AD') is the positive class
+    # Assume class 1 ('AD') is the positive class
     positive_class_index = 1 
     
     # Iterate through possible thresholds
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
     # --- Find Best Threshold on Validation Set ---
     print("Loading validation data...")
-    # We set num_workers=0 for safety in a main script (avoids multiprocessing issues)
+    # Set num_workers=0 for safety in a main script (avoids multiprocessing issues)
     _, val_loader = get_adni_dataloader(batch_size=32, train=True, val_split=0.2, num_workers=0) 
 
     print("Finding best threshold on validation set...")

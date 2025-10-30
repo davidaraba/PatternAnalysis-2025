@@ -16,7 +16,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
 
-# Import from your other project files
+# Import from other project files
 from dataset import get_adni_dataloader
 from modules import ConvNeXt
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
 
         print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f} | "
-              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+            f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
         # Store history
         history['train_loss'].append(train_loss)

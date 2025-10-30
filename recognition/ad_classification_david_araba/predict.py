@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
-# Import from your other project files
+# Import from other project files
 from dataset import get_adni_dataloader, DATASET_MEAN, DATASET_STD
 from modules import ConvNeXt
 
@@ -35,7 +35,6 @@ def predict_and_visualise(model_path, output_dir, num_images=9):
     print(f"Loading model from {model_path}...")
     
     # The model architecture MUST match the saved weights.
-    # Added drop_path_rate=0.4 to match train.py
     model = ConvNeXt(
         in_chans=1, 
         num_classes=2, 
