@@ -20,10 +20,9 @@ This repository contains a PyTorch implementation of a custom ConvNeXt architect
 7. [Training Strategy](#training-strategy)
 8. [Results and Performance](#results-and-performance)
 9. [Usage Instructions](#usage-instructions)
-10. [Dependencies and Requirements](#dependencies-and-requirements)
-11. [Reproducibility](#reproducibility)
-12. [Future Work and Limitations](#future-work-and-limitations)
-13. [References](#references)
+10. [Dependencies and Reproducibility](#dependencies-and-reproducibility)
+11. [Future Work and Limitations](#future-work-and-limitations)
+12. [References](#references)
 
 ## Problem Statement
 
@@ -132,7 +131,7 @@ Sophisticated data handling includes:
 - **Advanced Augmentation**: A pipeline of training-time transforms (rotation, affine, blur, etc.) to improve generalization.
 - **Train/Validation Split**: Automatically splits the training set into 80% training and 20% validation.
 
-#### 3. Training Framework (`train.py`)
+#### 3. Training & Evaluation (`train.py`, `evaluate_best.py`)
 
 Advanced training methodology:
 
@@ -150,7 +149,8 @@ The ADNI dataset can be downloaded from their website, [ADNI website](https://ad
 
 Here is an example image of what the data looks like from the training set:
 
-![Example ADNI Scan](images/assets/example_adni_scan.jpeg)
+![Example ADNI Scan](images/assets/example_adni_scan.png)
+
 _Example brain scan from the ADNI dataset showing a typical MRI slice used for classification_
 
 ## Dataset and Preprocessing
@@ -308,7 +308,7 @@ The implementation supports multiple architectural configurations:
 #### 1. Optimizer Settings
 
 - **Algorithm**: AdamW with improved weight decay
-- **Learning Rate**: 5e-5 (carefully tuned for medical imaging)
+- **Learning Rate**: 5e-4 (as specified in `train.py`)
 - **Weight Decay**: 0.05 for effective regularization
 - **Beta Parameters**: Default values (β₁=0.9, β₂=0.999)
 
@@ -328,8 +328,8 @@ scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler
 #### 3. Regularization Techniques
 
 - **Label Smoothing**: 0.1 smoothing factor to prevent overconfident predictions
-- **DropPath**: 0.2 probability for stochastic depth regularization
-- **Weight Decay**: L2 regularization on model parameters
+- **DropPath**: 0.4 probability for stochastic depth regularization
+- **Weight Decay**: L2 regularization on model parameters (0.05)
 
 ### Training Protocol
 
@@ -338,7 +338,7 @@ scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler
 - **Epochs**: 250 (extended training for convergence)
 - **Batch Size**: 32 (balanced memory usage and gradient stability)
 - **Validation Frequency**: Every epoch
-- **Model Checkpointing**: Best validation accuracy saved
+- **Model Checkpointing**: Best model saved based on validation accuracy
 
 #### 2. Data Augmentation Strategy
 
@@ -346,7 +346,9 @@ Training-time augmentations include:
 
 - **Random Cropping**: 224×224 from 256×256 resized images
 - **Horizontal Flipping**: 50% probability for data diversity
-- **Rotation**: ±15 degrees for robustness to orientation
+- **Rotation**: ±15 degrees
+- **Affine Transformation**: Includes slight translation, scaling, and shear
+- **Gaussian Blur**: Applied with a random kernel
 - **Color Jittering**: Brightness and contrast variation (±10%)
 
 #### 3. Loss Function
@@ -421,30 +423,30 @@ python train.py
 
 This script will:
 
-- Load the ADNI dataset using dataset.py.
-- Build the ConvNeXt model from modules.py.
+- Load the ADNI dataset using `dataset.py`.
+- Build the ConvNeXt model from `modules.py`.
 - Train the model for 250 epochs, printing validation accuracy after each epoch
-- Automatically save the model with the best validation accuracy to checkpoints/best_model.pth.
-- Generate a training_history.png plot
+- Automatically save the model with the best validation accuracy to `checkpoints/best_model.pth`.
+- Generate a `training_history.png` plot
 
 ### 2. Evaluating the Model
 
-After training, you can run a full evaluation on the test set using evaluate_best.py. This script calculates accuracy, precision, recall, F1-score, and generates the final confusion matrix.
+After training, you can run a full evaluation on the test set using `evaluate_best.py`. This script calculates accuracy, precision, recall, F1-score, and generates the final confusion matrix.
 
 ```bash
 python evaluate_best.py
 ```
 
-By default, this script looks for the checkpoints/best_model.pth file. It will:
+By default, this script looks for the `checkpoints/best_model.pth` file. It will:
 
 - Load the best saved model.
 - Run evaluation on the held-out test set.
 - Print the final metrics (Accuracy, Precision, Recall, F1) to the console.
-- Generaate the final confusion matrix.
+- Generate the final confusion matrix.
 
-### 3. Running Predicitons
+### 3. Running Predictions
 
-To visualize the model's performance on individual images, use the predict.py script.
+To visualize the model's performance on individual images, use the `predict.py` script.
 
 ```bash
 python predict.py
@@ -452,10 +454,10 @@ python predict.py
 
 This script will:
 
-- Load the best saved model from checkpoints/best_model.pth.
+- Load the best saved model from `checkpoints/best_model.pth`.
 - Load 9 random images from the test set.
 - Generate a 3x3 plot with the model's prediction and the true label for each image.
-- Save the resulting plot to prediction_outputs/prediction_examples.png.
+- Save the resulting plot to `prediction_outputs/prediction_examples.png`.
 
 You can also specify a different model or output directory:
 
@@ -463,49 +465,21 @@ You can also specify a different model or output directory:
 python predict.py --model-path /path/to/your_model.pth --output-dir /path/to/your_output_folder
 ```
 
-Here is an example of the output file generated by the script (which has been saved to images/assets/ for this report):
+Here is an example of the output file generated by the script (which has been saved to `images/assets/` for this report):
 
 ![Prediction](images/assets/prediction_examples.png)
 _Example predictions showing model classification results on test images_
 
-## Dependencies and Requirements
+## Dependencies and Reproducibility
 
 ### Core Dependencies
 
-```txt
-torch==2.8.0                    # PyTorch framework
-torchvision==0.23.0             # Computer vision utilities
-timm==1.0.20                    # Pre-trained models and utilities
-matplotlib==3.10.7              # Visualization
-tqdm==4.67.1                    # Progress bars
-pillow==11.3.0                  # Image processing
-numpy==2.2.6                    # Numerical computing
-```
-
-### Hardware Requirements
-
-#### Minimum Requirements
-
-- **CPU**: Multi-core processor (4+ cores recommended)
-- **RAM**: 8GB minimum, 16GB recommended
-- **Storage**: 10GB free space for dataset and models
-- **GPU**: CUDA-capable GPU with 4GB+ VRAM (recommended)
-
-#### Recommended Configuration
-
-- **CPU**: 8+ core processor
-- **RAM**: 32GB or higher
-- **GPU**: RTX 3080/4080 or equivalent with 10GB+ VRAM
-- **Storage**: SSD with 50GB+ free space
+The `requirements.txt` file contains all the necessary packages required for the project.
 
 ### Software Requirements
 
-- **Operating System**: Linux (Ubuntu 20.04+), macOS, or Windows 10+
 - **Python**: Version 3.8 or higher
 - **CUDA**: Version 11.8 or higher (for GPU acceleration)
-- **Git**: For version control
-
-## Reproducibility
 
 ### Environment Setup
 
@@ -528,53 +502,12 @@ conda activate alzheimer_classification
 pip install -r requirements.txt
 ```
 
-#### 3. Verify Installation
-
-```bash
-python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
-python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
-```
-
-### Reproducible Training
-
-#### 1. Set Random Seeds
-
-```python
-import torch
-import random
-import numpy as np
-
-torch.manual_seed(42)
-random.seed(42)
-np.random.seed(42)
-```
-
-#### 2. Deterministic Operations
-
-```python
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-```
-
-#### 3. Consistent Data Loading
-
-The dataset loader uses deterministic transforms and consistent splitting for reproducible results.
-
 ### Model Checkpointing
 
-The training script automatically saves:
+The `train.py` script automatically saves two key outputs:
 
-- **Best Model**: Based on validation accuracy
-- **Training History**: Loss and accuracy curves
-- **Configuration**: Hyperparameters and model architecture
-
-### Result Verification
-
-To verify reproducibility:
-
-1. Train the model with identical hyperparameters
-2. Compare training curves and final metrics
-3. Validate prediction consistency on test samples
+- **Best Model**: The model weights that achieve the best validation accuracy are saved to `checkpoints/best_model.pth`.
+- **Training History**: The loss and accuracy curves are saved as a `training_history.png` plot.
 
 ## Future Work and Limitations
 
