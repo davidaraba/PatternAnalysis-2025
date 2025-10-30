@@ -22,9 +22,8 @@ This repository contains a PyTorch implementation of a custom ConvNeXt architect
 9. [Usage Instructions](#usage-instructions)
 10. [Dependencies and Requirements](#dependencies-and-requirements)
 11. [Reproducibility](#reproducibility)
-12. [Technical Specifications](#technical-specifications)
-13. [Future Work and Limitations](#future-work-and-limitations)
-14. [References](#references)
+12. [Future Work and Limitations](#future-work-and-limitations)
+13. [References](#references)
 
 ## Problem Statement
 
@@ -576,52 +575,6 @@ To verify reproducibility:
 1. Train the model with identical hyperparameters
 2. Compare training curves and final metrics
 3. Validate prediction consistency on test samples
-
-## Technical Specifications
-
-### Model Architecture Details
-
-#### Layer Specifications
-
-- **Input Channels**: 1 (grayscale medical images)
-- **Output Classes**: 2 (AD vs CN)
-- **Total Parameters**: Approximately 28M parameters
-- **Model Size**: ~110MB (FP32 weights)
-
-#### Computational Complexity
-
-- **FLOPs**: ~4.5 GFLOPs per forward pass
-- **Memory Usage**: ~2GB VRAM for batch size 32
-- **Training Time**: ~4-6 hours on RTX 3080 for 250 epochs
-
-### Data Specifications
-
-#### Image Properties
-
-- **Format**: Grayscale (single channel)
-- **Input Size**: 224×224 pixels
-- **Normalization**: Dataset-specific mean and standard deviation
-- **Augmentation**: Training-time transformations only
-
-#### Dataset Statistics
-
-- **Mean**: 0.1155 (calculated from training set)
-- **Standard Deviation**: 0.2254 (calculated from training set)
-- **Dynamic Range**: [0, 1] after ToTensor transformation
-
-### Performance Benchmarks
-
-#### Training Performance
-
-- **Epoch Time**: ~2-3 minutes per epoch (RTX 3080)
-- **Memory Efficiency**: ~85% GPU utilization
-- **Convergence**: Typically within 150-200 epochs
-
-#### Inference Performance
-
-- **Batch Processing**: ~100 images/second
-- **Single Image**: ~10ms inference time
-- **Memory Overhead**: ~500MB for inference
 
 ## Future Work and Limitations
 
