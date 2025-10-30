@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     # Load Model (Use the architecture matching the saved weights - ConvNeXt Small)
     print("Loading model...")
-    model = ConvNeXt(in_chans=3, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device) # Assuming 3-channel input
+    model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device) # Assuming 3-channel input
     # If your best model used 1-channel, change in_chans back to 1
     # model = ConvNeXt(in_chans=1, num_classes=2, depths=[3, 3, 27, 3], drop_path_rate=0.2).to(device) 
     model.load_state_dict(torch.load(args.model_path, map_location=device))
