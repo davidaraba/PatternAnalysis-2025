@@ -1,8 +1,8 @@
 # Alzheimer's Disease Classification using ConvNeXt Architecture
 
-**Author**: David Araba  
-**Institution**: University of Queensland  
-**Course**: COMP3710 - Pattern Analysis  
+**Author**: David Araba
+**Institution**: University of Queensland
+**Course**: COMP3710 - Pattern Analysis
 **Academic Year**: 2025
 
 ## Abstract
@@ -142,7 +142,7 @@ Advanced training methodology:
 
 ## About the Dataset
 
-The ADNI dataset has been used in this project to train and test our model. ADNI is a well-known Alzheimer's disease research dataset that includes thousands of Magnetic Resonance Imaging (MRI) brain scans [2]. The data has been separated into two groups; Cognitively Normal (CN), which are brain images of healthy individuals, and Alzheimer's Disease (AD), which are individuals who have been diagnosed with Alzheimer's disease.
+The ADNI dataset has been used in this project to train and test the model. ADNI is a well-known Alzheimer's disease research dataset that includes thousands of Magnetic Resonance Imaging (MRI) brain scans [2]. The data has been separated into two groups; Cognitively Normal (CN), which are brain images of healthy individuals, and Alzheimer's Disease (AD), which are individuals who have been diagnosed with Alzheimer's disease.
 
 The ADNI dataset can be downloaded from their website, [ADNI website](https://adni.loni.usc.edu/).
 
@@ -155,7 +155,7 @@ _Example brain scan from the ADNI dataset showing a typical MRI slice used for c
 
 ### ADNI Dataset Description
 
-The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a comprehensive collection of neuroimaging and biomarker data designed to accelerate research into Alzheimer's disease [2]. The MRI data were acquired and processed according to the standardized imaging protocols described by Jack et al. [7], ensuring consistent quality and reproducibility across scanners and participants. This implementation utilizes the preprocessed version containing:
+The ADNI dataset is a comprehensive collection of neuroimaging and biomarker data designed to accelerate research into Alzheimer's disease [2]. The MRI data were acquired and processed according to the standardized imaging protocols described by Jack et al. [7], ensuring consistent quality and reproducibility across scanners and participants. This implementation utilizes the preprocessed version containing:
 
 - **Image Format**: Grayscale medical images (loaded as single-channel 'L' mode).
 - **Classes**: Alzheimer's Disease (AD) and Cognitively Normal (CN)
@@ -247,7 +247,7 @@ This design addresses the issue of efficiency, as the ConvNeXt architecture achi
 
 ### Why Use ConvNeXt?
 
-The ConvNeXt is designed for image classification and has performed significantly well on the large visual database ImageNet in the original paper [3]. It builds upon the foundational ResNet architecture [4], which first introduced residual learning and skip connections that made very deep networks trainable. For the ADNI dataset, the task is very similar, to learn the underlying data structures of the images and to classify whether a given image has Alzheimer's or not. A major benefit of the ConvNeXt compared to other deep learning algorithms is its scalability to train on more complex images in a shorter time frame which is no doubt an important considered aspect in the medical research industry. For this problem space, the ConvNeXt meets the criteria of a fast and accurate solution with the ability of the model to expand to more complex data in the future.
+The ConvNeXt is designed for image classification and has performed significantly well on the large visual database ImageNet in the original paper [3]. It builds upon the foundational ResNet architecture [4], which first introduced residual learning and skip connections that made very deep networks trainable. For the ADNI dataset, the task is very similar, to learn the underlying data structures of the images and to classify whether a given image has Alzheimer's or not. A major benefit of the ConvNeXt compared to other deep learning algorithms is its scalability to train on more complex images in a shorter time frame which is no doubt an important aspect in the medical research industry. For this problem space, the ConvNeXt meets the criteria of a fast and accurate solution with the ability of the model to expand to more complex data in the future.
 
 The overall architecture of the model starts by taking an input image and applying a stem layer with 4×4 convolution and stride 4 for initial downsampling. The ConvNeXt consists of multiple stages, each containing several ConvNeXt blocks that combine depthwise convolution with pointwise operations, followed by a feed forward network (FFN) similar to a vision transformer. The output of the last block is fed into a global average pooling layer and then into a linear classifier.
 
@@ -308,7 +308,6 @@ The implementation supports multiple architectural configurations:
 - **Algorithm**: AdamW with improved weight decay
 - **Learning Rate**: 5e-4 (as specified in `train.py`)
 - **Weight Decay**: 0.05 for effective regularization
-- **Beta Parameters**: Default values (β₁=0.9, β₂=0.999)
 
 #### 2. Learning Rate Scheduling
 
@@ -359,7 +358,7 @@ criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
 ## Results and Performance
 
-This ConvNeXt model achieved a final test accuracy of **78.17%** and a final test loss of **0.7456**. This result meets the project requirements for Task 8, demonstrating a strong capability for classifying Alzheimer's disease from the ADNI dataset.
+This ConvNeXt model achieved a final test accuracy of **78.17%** and a final test loss of **0.7456**, demonstrating a strong capability for classifying Alzheimer's disease from the ADNI dataset.
 
 The model was trained for 250 epochs, which took approximately 7.5 hours on the UQ Rangpur HPC.
 
@@ -482,7 +481,7 @@ It is recommended to use a virtual environment. These instructions use `conda`.
 
 ```bash
 # Create a new conda environment (e.g., named 'alzheimer_classification')
-# We specify a python version compatible with the project requirements
+# Specify a python version compatible with the project requirements
 conda create --name alzheimer_classification python=3.8
 
 # Activate the new environment
@@ -565,9 +564,9 @@ The `train.py` script automatically saves two key outputs:
 
 ## References
 
-[1] National Institute of Aging. (April 5, 2023). Alzheimer's Disease Fact Sheet. National Institute on Aging. <https://www.nia.nih.gov/health/alzheimers-and-dementia/alzheimers-disease-fact-sheet>
+[1] National Institute of Aging. (April 5, 2023). Alzheimer's Disease Fact Sheet. National Institute on Aging. [https://www.nia.nih.gov/health/alzheimers-and-dementia/alzheimers-disease-fact-sheet](https://www.nia.nih.gov/health/alzheimers-and-dementia/alzheimers-disease-fact-sheet)
 
-[2] Alzheimer's Disease Neuroimaging Initiative. (2024). ADNI. <https://adni.loni.usc.edu/>
+[2] Alzheimer's Disease Neuroimaging Initiative. (2024). ADNI. [https://adni.loni.usc.edu/](https://adni.loni.usc.edu/)
 
 [3] Liu, Z., Mao, H., Wu, C. Y., Feichtenhofer, C., Darrell, T., & Xie, S. (2022). A ConvNet for the 2020s. _Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition_, 11976-11986.
 
